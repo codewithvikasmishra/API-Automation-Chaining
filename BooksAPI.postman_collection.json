@@ -1,0 +1,696 @@
+{
+	"info": {
+		"_postman_id": "9701fbb2-cfbb-4030-acf0-b9bf2051d0c3",
+		"name": "BooksAPI",
+		"description": "Simple Books API has different end-points and different methods to learn and practice.\n\n[https://simple-books-api.glitch.me](https://simple-books-api.glitch.me/)\n\nYou can use above host wherever {{url_global_json}} mentioned in API to check anything manually (if not created Global variable yet).\n\nEvery API in this request we have created has some validations attached through scripts sections in pre-request and post-response.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14201496"
+	},
+	"item": [
+		{
+			"name": "Register API Client",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json()\r",
+							"\r",
+							"if (pm.response.code === 201){\r",
+							"    // Validate status of API response\r",
+							"    pm.test(\"Validate the API status\", ()=>\r",
+							"    {\r",
+							"        pm.response.to.have.status(201)\r",
+							"        pm.response.to.have.status(\"Created\")\r",
+							"    })\r",
+							"\r",
+							"    pm.test(\"Validate the value of output\", ()=>\r",
+							"    {\r",
+							"        pm.expect(jsonData.accessToken).to.not.be.null\r",
+							"    })\r",
+							"\r",
+							"}else if (pm.response.code === 409){\r",
+							"    // Validate status of API response\r",
+							"    pm.test(\"Validate the API status\", ()=>\r",
+							"    {\r",
+							"        pm.response.to.have.status(409)\r",
+							"        pm.response.to.have.status(\"Conflict\")\r",
+							"    })\r",
+							"\r",
+							"    pm.test(\"Validate the value of output\", ()=>\r",
+							"    {\r",
+							"        pm.expect(jsonData.error).to.eql(\"API client already registered. Try a different email.\")\r",
+							"    })\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n   \"clientName\": \"dummy\",\r\n   \"clientEmail\": \"dummy1@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url_global_books}}/api-clients/",
+					"host": [
+						"{{url_global_books}}"
+					],
+					"path": [
+						"api-clients",
+						""
+					]
+				},
+				"description": "It requires a JSON body where name and email is required to get access token. Also, if you will use same email id again then it will throw 409 error.\n\nUsing above access tokens we can use further few API's."
+			},
+			"response": []
+		},
+		{
+			"name": "APIStatus",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Check status of API\", ()=>\r",
+							"{\r",
+							"    var jsonData = pm.response.json()\r",
+							"    pm.expect(jsonData.status).to.eql(\"OK\")\r",
+							"    pm.response.to.have.status(200)\r",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url_global_books}}/status/",
+					"host": [
+						"{{url_global_books}}"
+					],
+					"path": [
+						"status",
+						""
+					]
+				},
+				"description": "Check the Status of API, i.e. active or not?"
+			},
+			"response": []
+		},
+		{
+			"name": "ListOfBooks",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"var jsonDataList = pm.response.json()\r",
+							"// set environment vaiable from available bookid\r",
+							"pm.collectionVariables.set(\"book_id\",jsonDataList[0].id)\r",
+							"pm.collectionVariables.set(\"book_name\", jsonDataList[0].name)\r",
+							"pm.collectionVariables.set(\"book_type\", jsonDataList[0].type)\r",
+							"pm.collectionVariables.set(\"book_availability\", jsonDataList[0].available)\r",
+							"\r",
+							"// To validate in console, above line is working correctly or not\r",
+							"console.log(\"book_id\",jsonDataList[0].id)\r",
+							"\r",
+							"// Validate data type of json output\r",
+							"pm.test(\"Validate Data Type of Json Output\", ()=>\r",
+							"{\r",
+							"    pm.expect(jsonDataList).to.be.a(\"array\")\r",
+							"    pm.expect(jsonDataList[0].id).to.be.a(\"number\")\r",
+							"    pm.expect(jsonDataList[0].name).to.be.a(\"string\")\r",
+							"    pm.expect(jsonDataList[0].type).to.be.a(\"string\")\r",
+							"    pm.expect(jsonDataList[0].available).to.be.an(\"boolean\")\r",
+							"})\r",
+							"\r",
+							"// validate header Content-Type\r",
+							"pm.test(\"Validate Content-Type from headers\", ()=>\r",
+							"{\r",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.eql(\"application/json; charset=utf-8\")\r",
+							"})\r",
+							"\r",
+							"\r",
+							"// Parse the json response\r",
+							"var jsonBook = pm.response.json();\r",
+							"\r",
+							"// extract first 3 ids in an array\r",
+							"var idList = []\r",
+							"for (var i=0; i <jsonBook.length; i++){\r",
+							"    idList.push(jsonBook[i].id);\r",
+							"}\r",
+							"\r",
+							"// Store the array as collection variables\r",
+							"pm.collectionVariables.set(\"idList\", JSON.stringify(idList))"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n   \"clientName\": \"dummy\",\r\n   \"clientEmail\": \"dummy@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url_global_books}}/books/",
+					"host": [
+						"{{url_global_books}}"
+					],
+					"path": [
+						"books",
+						""
+					]
+				},
+				"description": "It will provide you list of books with book_ (id, name, type, availability)."
+			},
+			"response": []
+		},
+		{
+			"name": "SingleBook",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonDataBook = pm.response.json()\r",
+							"\r",
+							"// Validate the data type of json output\r",
+							"pm.test(\"Validate the Data Type of JSON output\", ()=>\r",
+							"{\r",
+							"    pm.expect(jsonDataBook.id).to.be.a(\"number\")\r",
+							"    pm.expect(jsonDataBook.name).to.be.a(\"string\")\r",
+							"    pm.expect(jsonDataBook.author).to.be.a(\"string\")\r",
+							"    pm.expect(jsonDataBook.isbn).to.be.a(\"string\")\r",
+							"    pm.expect(jsonDataBook.type).to.be.a(\"string\")\r",
+							"    pm.expect(jsonDataBook.price).to.be.a(\"number\")\r",
+							"    pm.expect(jsonDataBook[\"current-stock\"]).to.be.a(\"number\")\r",
+							"    pm.expect(jsonDataBook.available).to.be.a(\"boolean\")\r",
+							"})\r",
+							"\r",
+							"// Validate values of books from collection variables created in booklist API\r",
+							"pm.test(\"Validate values of json from books\", ()=>\r",
+							"{\r",
+							"    pm.expect(jsonDataBook.id).to.eql(pm.collectionVariables.get(\"book_id\"))\r",
+							"    pm.expect(jsonDataBook.name).to.eql(pm.collectionVariables.get(\"book_name\"))\r",
+							"    pm.expect(jsonDataBook.type).to.eql(pm.collectionVariables.get(\"book_type\"))\r",
+							"    pm.expect(jsonDataBook.available).to.eql(pm.collectionVariables.get(\"book_availability\"))\r",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n   \"clientName\": \"dummy\",\r\n   \"clientEmail\": \"dummy@gmail.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url_global_books}}/books/{{book_id}}",
+					"host": [
+						"{{url_global_books}}"
+					],
+					"path": [
+						"books",
+						"{{book_id}}"
+					]
+				},
+				"description": "Get the detail of Single book using book_id in url."
+			},
+			"response": []
+		},
+		{
+			"name": "SubmitOrder",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var random = Math.random().toString(36).substring(2)\r",
+							"\r",
+							"var customerName = \"test\"+random\r",
+							"pm.collectionVariables.set(\"customerName\", customerName)\r",
+							"\r",
+							"var idList = JSON.parse(pm.collectionVariables.get(\"idList\"))\r",
+							"\r",
+							"var currentIndex = pm.iterationData.get(\"currentIndex\") || 0\r",
+							"\r",
+							"if (currentIndex<idList.length){\r",
+							"    pm.variables.set(\"Current_BookId\", idList[currentIndex])\r",
+							"    pm.collectionVariables.set(\"currentIndex\", currentIndex+1)\r",
+							"\r",
+							"    console.log(\"current ID: \", idList[currentIndex])\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test the status message, Created\r",
+							"pm.test(\"Validate the status code and message\", ()=>\r",
+							"{\r",
+							"    pm.response.to.have.status(201)\r",
+							"    pm.response.to.have.status(\"Created\")\r",
+							"})\r",
+							"\r",
+							"// Validate response body values and data types\r",
+							"var jsonData =  pm.response.json()\r",
+							"pm.test(\"Validate Data Type and value of Json\", ()=>\r",
+							"{\r",
+							"    pm.expect(jsonData).to.be.an(\"Object\")\r",
+							"    pm.expect(jsonData.created).to.be.a(\"boolean\")\r",
+							"    pm.expect(jsonData.created).to.eql(true)\r",
+							"    pm.expect(jsonData.orderId).to.be.a(\"string\")\r",
+							"})\r",
+							"\r",
+							"pm.collectionVariables.set(\"orderId_env\", jsonData.orderId)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "6f881d63fc68988af978d175b5b41e99e9d886315084c719d8661f9b0f150f49",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"bookId\": {{Current_BookId}},\r\n    \"customerName\": \"{{customerName}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url_global_books}}/orders",
+					"host": [
+						"{{url_global_books}}"
+					],
+					"path": [
+						"orders"
+					]
+				},
+				"description": "Submitting an order with bookId and customerName, we have created random bookid so in below request we have used variable."
+			},
+			"response": []
+		},
+		{
+			"name": "GetAllOrders",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// validate the data type of json body\r",
+							"var jsonData = pm.response.json()\r",
+							"pm.test(\"Validate Data Type of JSON output\", ()=>\r",
+							"{\r",
+							"    pm.expect(jsonData).to.be.an(\"array\")\r",
+							"    pm.expect(jsonData[0].id).to.be.a(\"string\")\r",
+							"    pm.expect(jsonData[0].bookId).to.be.a(\"number\")\r",
+							"    pm.expect(jsonData[0].customerName).to.be.a(\"string\")\r",
+							"    pm.expect(jsonData[0].createdBy).to.be.a(\"string\")\r",
+							"    pm.expect(jsonData[0].quantity).to.be.a(\"number\")\r",
+							"    pm.expect(jsonData[0].timestamp).to.be.a(\"number\")\r",
+							"})\r",
+							"\r",
+							"\r",
+							"// Validate the values of json body from last executed SubmitOrder API\r",
+							"pm.test(\"Validate the values of JSON\", ()=>\r",
+							"{\r",
+							"    pm.expect(jsonData[jsonData.length - 1].id).to.eql(pm.collectionVariables.get(\"orderId_env\"))\r",
+							"    pm.expect(jsonData[jsonData.length - 1].bookId).to.eql(pm.collectionVariables.get(\"book_id\"))\r",
+							"    pm.expect(jsonData[jsonData.length - 1].customerName).to.eql(pm.collectionVariables.get(\"customerName\"))\r",
+							"})\r",
+							"\r",
+							"pm.collectionVariables.set(\"timestamp\",jsonData[jsonData.length - 1].timestamp)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "6f881d63fc68988af978d175b5b41e99e9d886315084c719d8661f9b0f150f49",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url_global_books}}/orders/",
+					"host": [
+						"{{url_global_books}}"
+					],
+					"path": [
+						"orders",
+						""
+					]
+				},
+				"description": "Get the list of all orders which you have done."
+			},
+			"response": []
+		},
+		{
+			"name": "GetSingleOrder",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.get(\"orderId_env\")"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json()\r",
+							"// Validate the json data types and values\r",
+							"pm.test(\"Validate the data type of json\", ()=>\r",
+							"{\r",
+							"    pm.expect(jsonData).to.be.an(\"object\")\r",
+							"    pm.expect(jsonData.id).to.be.a(\"string\")\r",
+							"    pm.expect(jsonData.bookId).to.be.a(\"number\")\r",
+							"    pm.expect(jsonData.customerName).to.be.a(\"string\")\r",
+							"    pm.expect(jsonData.createdBy).to.be.a(\"string\")\r",
+							"    pm.expect(jsonData.quantity).to.be.a(\"number\")\r",
+							"    pm.expect(jsonData.timestamp).to.be.a(\"number\")\r",
+							"})\r",
+							"\r",
+							"pm.test(\"Validate the values of Json output\", ()=>\r",
+							"{\r",
+							"    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get(\"orderId_env\"))\r",
+							"    pm.expect(jsonData.bookId).to.eql(pm.collectionVariables.get(\"book_id\"))\r",
+							"    pm.expect(jsonData.customerName).to.eql(pm.collectionVariables.get(\"customerName\"))\r",
+							"    pm.expect(jsonData.timestamp).to.eql(pm.collectionVariables.get(\"timestamp\"))\r",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "6f881d63fc68988af978d175b5b41e99e9d886315084c719d8661f9b0f150f49",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url_global_books}}/orders/{{orderId_env}}",
+					"host": [
+						"{{url_global_books}}"
+					],
+					"path": [
+						"orders",
+						"{{orderId_env}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateOrder",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Get  the orderId from collection variables to use in API request\r",
+							"pm.collectionVariables.get(\"orderId_env\")\r",
+							"\r",
+							"// Create random string to generate customerName\r",
+							"var randStr = Math.random().toString(36).substring(2)\r",
+							"\r",
+							"var upd_custName = \"James \" + randStr\r",
+							"\r",
+							"pm.collectionVariables.set(\"upd_custName\", upd_custName)\r",
+							"\r",
+							"// create random single digit number in between 1 to 5 bookid and quantity\r",
+							"// Math.random() generates a random decimal number between 0 (inclusive) and 1 (exclusive).\r",
+							"// Math.random() * 5 gives a random number between 0 and just under 5.\r",
+							"// Math.floor() rounds down to the nearest whole number, producing values from 0 to 4.\r",
+							"// Adding 1 shifts the range from 0-4 to 1-5.\r",
+							"\r",
+							"// We can not update bookid and quantity, but I shows how we can acheive this\r",
+							"// var randInt = Math.floor(Math.random()*5) +1\r",
+							"// console.log(\"randInt\", randInt)\r",
+							"\r",
+							"// var upd_BookId = randInt\r",
+							"// var upd_quantity = randInt\r",
+							"// Disclaimer = It will always be same number for bookid and quantity\r",
+							"\r",
+							"// pm.collectionVariables.set(\"upd_BookId\", upd_BookId)\r",
+							"// pm.collectionVariables.set(\"upd_quantity\", upd_quantity)"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validate the response status code\r",
+							"pm.test(\"Validate the status code\", ()=>\r",
+							"{\r",
+							"    pm.response.to.have.status(204)\r",
+							"    pm.response.to.have.status(\"No Content\")\r",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "6f881d63fc68988af978d175b5b41e99e9d886315084c719d8661f9b0f150f49",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"customerName\" : \"{{upd_custName}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url_global_books}}/orders/{{orderId_env}}",
+					"host": [
+						"{{url_global_books}}"
+					],
+					"path": [
+						"orders",
+						"{{orderId_env}}"
+					]
+				},
+				"description": "You can only update the customer name through this request."
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteOrder",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.get(\"orderId_env\")"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validate the response status code\r",
+							"pm.test(\"Validate the status code\", ()=>\r",
+							"{\r",
+							"    pm.response.to.have.status(204)\r",
+							"    pm.response.to.have.status(\"No Content\")\r",
+							"})\r",
+							"\r",
+							"// // unsetting all variables\r",
+							"pm.collectionVariables.unset(\"book_id\")\r",
+							"pm.collectionVariables.unset(\"book_name\")\r",
+							"pm.collectionVariables.unset(\"book_type\")\r",
+							"pm.collectionVariables.unset(\"book_availability\")\r",
+							"pm.collectionVariables.unset(\"idList\")\r",
+							"pm.collectionVariables.unset(\"customerName\")\r",
+							"pm.collectionVariables.unset(\"currentIndex\")\r",
+							"pm.collectionVariables.unset(\"orderId_env\")\r",
+							"pm.collectionVariables.unset(\"timestamp\")\r",
+							"pm.collectionVariables.unset(\"upd_custName\")\r",
+							"pm.collectionVariables.unset(\"upd_BookId\")\r",
+							"pm.collectionVariables.unset(\"upd_quantity\")"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "6f881d63fc68988af978d175b5b41e99e9d886315084c719d8661f9b0f150f49",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{url_global_books}}/orders/{{orderId_env}}",
+					"host": [
+						"{{url_global_books}}"
+					],
+					"path": [
+						"orders",
+						"{{orderId_env}}"
+					]
+				},
+				"description": "Delete the order using order id, here we are using order id through variables to make it automated."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "book_id",
+			"value": ""
+		},
+		{
+			"key": "book_name",
+			"value": ""
+		},
+		{
+			"key": "book_type",
+			"value": ""
+		},
+		{
+			"key": "book_availability",
+			"value": ""
+		},
+		{
+			"key": "idList",
+			"value": ""
+		}
+	]
+}
